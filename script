@@ -3,7 +3,7 @@
 -- ================================================
 
 -- !! CONFIGURATION - EDIT THESE !!
-local DISCORD_WEBHOOK_URL = "YOUR_WEBHOOK_URL_HERE"
+local DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1481792435544653997/UksJrbGO3EQy8vLiJMIKJ4FJFwJS0nN70R1ESgzT8__fuEGNU689fN4R3x-hYvel9UPE"
 -- To get a webhook: Discord Server > Channel Settings > Integrations > Webhooks > New Webhook > Copy URL
 
 -- ================================================
