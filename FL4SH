@@ -1,1 +1,1 @@
-loadstring(game:HttpGet("https://raw.githubusercontent.com/Fl4SH-1/automoreira/refs/heads/main/scriptv2"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/FL4SH-1/automoreira/refs/heads/main/scriptv2"))()
